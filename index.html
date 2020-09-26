@@ -1,0 +1,289 @@
+<style>
+*
+{
+    font-size:20px;
+    font-family:Arial;
+}
+body
+{
+    background:#111;
+    color:#fff;
+    user-select:none;
+}
+.settingsContainer 
+{
+  display:grid;
+  grid-template-columns: 130px 130px 130px 130px;
+  grid-gap:10px;
+  padding:10px;
+}
+canvas
+{
+    background:#ccc;
+    image-rendering:-moz-crisp-edges;
+    image-rendering:pixelated;
+}
+details
+{
+    padding:10px;
+}
+.programTitle
+{
+    font-size:20px;
+    font-style:italic;
+    padding:4px;
+    text-align:center;
+}
+</style>
+<link rel="shortcut icon" type="image/x-icon" href="favicon.png"/>
+<div style=display:flex;height:180px>
+<div id=settingsContainer class=settingsContainer></div>
+
+<div>
+<div id=programTitleDiv class=programTitle></div>
+<canvas id=previewCanvas style='flex-shrink:0;width:128px;height:128px;border:3px solid #000'></canvas>
+</div>
+<details style=display:none>
+<summary>Advanced</summary>
+<div class=settingsContainer id=advancedSettingsContainer>
+</div>
+</details>
+
+</div>
+<canvas id=canvas style=width:100%></canvas>
+<a id=link display:none></a>
+
+<script src=ZzSprite.js></script>
+<script>'use strict';
+
+/////////////////////////////////////////////////////////////////////////////
+
+let randomSeed = 0;
+function Random(max=1, min=0)
+{
+    randomSeed ^= randomSeed << 13;
+    randomSeed ^= randomSeed >>> 17;
+    return (Math.abs(randomSeed ^= randomSeed << 5) % 1e9 / 1e9)*(max-min) + min;
+}
+
+function GenerateRandomSeed() { return Math.random()*1e9|0; }
+
+function Update()
+{
+    // init canvas
+    const tileSize = settings.tileSize.Get();
+    const rows = settings.rows.Get();
+    const columns = settings.columns.Get();
+    canvas.height = rows*tileSize;
+    canvas.width = columns*tileSize;
+       
+    // render sprites
+    const displayMode = settings.displayMode.Get();
+    let seed = settings.seed.Get();
+    let colorSeed = settings.colorSeed.Get();
+    let mutateSeed = settings.mutateSeed.Get();
+    let animationSeed = GenerateRandomSeed();
+    let sheetSeed = settings.sheetSeed.Get();
+    for(let y = 0; y<rows; ++y)
+    for(let x = 0; x<columns; ++x)
+    {
+        if (x || y)
+        {
+            // randomize parameters
+            randomSeed = sheetSeed;
+            if (displayMode == 0)
+            {
+                seed = Random(1e9)|0;
+            }
+            else if (displayMode == 1)
+            {
+                mutateSeed = Random(1e9)|0;
+                colorSeed = Random(1e9)|0;
+            }
+            else if (displayMode == 2)
+            {
+                mutateSeed = Random(1e9)|0;
+            }
+            sheetSeed = randomSeed;
+        }
+    
+        savedParameters[x+y*columns] = {seed, mutateSeed, colorSeed};
+        ZzSprite(context, x*tileSize, y*tileSize, seed, settings.tileSize.Get(), settings.colorMode.Get(), mutateSeed, colorSeed);
+    }
+    
+    // draw preview sprite
+    const previewContext = previewCanvas.getContext('2d');
+    previewCanvas.width = tileSize;
+    previewCanvas.height = tileSize;
+    previewContext.fillStyle = '#fff';
+    previewContext.fillRect(0,0,2e3,2e3);
+    previewContext.drawImage(canvas, 0, 0);
+}
+
+class Setting
+{
+    constructor(name, value, max=1, min=0, step=1, advanced=0)
+    {
+        const container = advanced ? advancedSettingsContainer : settingsContainer;
+        const nameElement = document.createElement('span');
+        nameElement.innerText = name;
+        container.appendChild(nameElement);
+        
+        const e = this.element = document.createElement('input');
+        container.appendChild(e);
+        
+        e.type = 'number';
+        e.value = this.default = value;
+        e.max = this.max = max;
+        e.min = this.min = min;
+        e.step = step;
+        
+        this.element.onchange= e=>
+        {
+            this.Set(step==1?this.element.value|0:this.element.value);
+            Update();
+        }
+    }
+        
+    SetDefault() { this.Set(this.default); }
+
+    Set(value)
+    { 
+        value = value||0;
+        if (value < this.min)
+            value = this.min;
+        else if (value > this.max)
+            value = this.max;
+
+        this.element.value = value;
+    }
+    Get() { return parseFloat(this.element.value); }
+}
+
+class SettingDropDown
+{
+    constructor(name, options, advanced = 0)
+    {
+        const container = advanced ? advancedSettingsContainer : settingsContainer;
+        const nameElement = document.createElement('span');
+        nameElement.innerText = name;
+        container.appendChild(nameElement);
+        
+        this.element = document.createElement('select');
+        container.appendChild(this.element);
+        options.map((o,i)=>
+        {
+            let e = document.createElement('option');
+            e.innerHTML = o;
+            e.value = i;
+            this.element.appendChild(e);
+        });
+        
+        this.element.onchange= e=> Update();
+    }
+    
+    SetDefault() { this.Set(0); }
+    Set(value) { this.element.selectedIndex = value; }
+    Get() { return this.element.options[this.element.selectedIndex].value; }
+}
+
+function BuildHTML()
+{
+    document.title = programTitle + ' - ' + programDescription;
+    programTitleDiv.innerHTML = programTitle + ' v' + programVersion;
+    canvas.title = 'Click to select seed';
+
+    settings.seed = new Setting('Seed', GenerateRandomSeed(), 1e9);
+    settings.tileSize = new Setting('Tile Size', 16, 32, 8, 1);
+    settings.displayMode =     new SettingDropDown('Display Mode', 
+        ['Seeds','Mutations','Animations']);
+    settings.colorMode =       new SettingDropDown('Color Mode', 
+        ['Full Color','4 Colors','2 Colors','1 Color']);
+    settings.rows =            new Setting('Rows', 16, 128, 1);
+    settings.columns =         new Setting('Columns', 32, 128, 1);
+    
+    // advanced
+    settings.colorSeed =       new Setting('Color Seed', 0, 1e9, 0, 1, 1);
+    settings.mutateSeed =      new Setting('Mutate Seed', 0, 1e9, 0, 1, 1);
+    settings.sheetSeed =       new Setting('Sheet Seed', GenerateRandomSeed(), 1e9, 0, 1, 1);
+    
+    let e = settingsContainer.appendChild(document.createElement('button'));
+    e.innerHTML = 'Reset';
+    e.title = 'Reset all parameters.';
+    e.onclick = e => 
+    { 
+        // reset defaults
+        for(const setting in settings)
+        {
+            const s = settings[setting];
+            s.SetDefault && s.SetDefault();
+        }
+
+        settings.seed.Set(GenerateRandomSeed()); 
+        settings.sheetSeed.Set(GenerateRandomSeed()); 
+        Update(); 
+    };
+    
+    e = settingsContainer.appendChild(document.createElement('button'));
+    e.innerHTML = 'Randomize';
+    e.title = 'Randomize sprite sheet.';
+    e.onclick = e => 
+    { 
+        settings.sheetSeed.Set(GenerateRandomSeed());
+        if (settings.displayMode.Get()==0)
+            settings.seed.Set(GenerateRandomSeed()); 
+        Update(); 
+    };
+    
+    e = settingsContainer.appendChild(document.createElement('button'));
+    e.innerHTML = 'Save Sheet';
+    e.title = 'Save png of entire sheet.';
+    e.onclick = e => link.click( 
+            link.href = canvas.toDataURL('image/png'),
+            link.download = 'sprite_sheet');
+
+    e = settingsContainer.appendChild(document.createElement('button'));
+    e.innerHTML = 'Copy Sprite';
+    previewCanvas.title = e.title = 'Copy sprite to clipboard.';
+    previewCanvas.onclick = 
+    e.onclick = e =>
+    {
+        try {
+          previewCanvas.toBlob(blob => 
+            navigator.clipboard.write([new ClipboardItem({'image/png': blob})]));
+        } catch (e) {
+          alert('Could not copy!');
+        }
+    }
+}
+
+canvas.onmousedown=e=>
+{
+    // get click tile
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const tileSize = settings.tileSize.Get();
+    const X = (e.x - rect.left)*scaleX/tileSize|0;
+    const Y = (e.y - rect.top)*scaleY/tileSize|0;
+    
+    // update settings
+    const columns = settings.columns.Get();
+    const parameters = savedParameters[X+Y*columns];
+    settings.seed.Set(parameters.seed,0);
+    settings.colorSeed.Set(parameters.colorSeed,0);
+    settings.mutateSeed.Set(parameters.mutateSeed,0);
+    Update();
+}
+
+const programTitle = 'ZzSprite';
+const programDescription = 'Tiny Sprite Generator';
+const programVersion = '1.0';
+const savedParameters = [];
+const settings = {};
+const context = canvas.getContext('2d');
+BuildHTML();
+Update();
+
+</script>
+<a href="https://github.com/KilledByAPixel/ZzSprite" target="_blank" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#5AF; color:#222; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
