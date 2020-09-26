@@ -1,6 +1,7 @@
 # ZzSprite
 
 A Tiny Sprite Generator by Frank Force
+
 [Based on a dweet](https://www.dwitter.net/d/3078) by Firey Fly
 
 # [Live Demo](https://killedbyapixel.github.io/ZzSprite/)
