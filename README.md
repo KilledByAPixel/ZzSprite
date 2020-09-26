@@ -4,7 +4,7 @@
 
 ## Features
 
-- Generates pixel art sprites using a proceedural algorithm.
+- Generates a wide variety of symetric pixel art sprites.
 - Click on a sprite to set that as the current seed.
 - Sprite can be mutated in shape or color.
 - Sprite sheets can be saved as pngs.
