@@ -17,15 +17,15 @@ A Tiny Sprite Generator by Frank Force
 - ZzSprite function can be used to generate sprites at run time
 
 ## Example sprites...
-![Example Image 1](/example1.png)
+![Example Image 1](/examples/example1.png)
 
 ## Example mutations...
-![Example Image 2](/example2.png)
+![Example Image 2](/examples/example2.png)
 
 ## Example animations...
-![Example Image 3](/example3.png)
+![Example Image 3](/examples/example3.png)
 
 ## So many possibilities!
-![Example Image 4](/example4.png)
+![Example Image 4](/examples/example4.png)
 
 ![Favicon](/favicon.png)
