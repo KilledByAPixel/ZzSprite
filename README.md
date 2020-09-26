@@ -17,3 +17,11 @@
 
 ## Example mutations...
 ![Example Image 2](/example2.png)
+
+## Example animations...
+![Example Image 3](/example3.png)
+
+## So many sprites...
+![Example Image 4](/example4.png)
+
+![Favicon](/favicon.png)
