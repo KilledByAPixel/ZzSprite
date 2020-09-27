@@ -53,7 +53,7 @@ details
 <canvas id=canvas style=width:100%></canvas>
 <a id=link display:none></a>
 
-<script src=ZzSprite.js></script>
+<script src=ZzSprite.js?1></script>
 <script>'use strict';
 
 /////////////////////////////////////////////////////////////////////////////
@@ -207,7 +207,8 @@ function BuildHTML()
     settings.mutateSeed =      new Setting('Mutate Seed', 0, 1e9, 0, 1, 1);
     settings.sheetSeed =       new Setting('Sheet Seed', GenerateRandomSeed(), 1e9, 0, 1, 1);
     
-    let e = settingsContainer.appendChild(document.createElement('button'));
+    let e;
+    /*e = settingsContainer.appendChild(document.createElement('button'));
     e.innerHTML = 'Reset';
     e.title = 'Reset all parameters.';
     e.onclick = e => 
@@ -222,7 +223,7 @@ function BuildHTML()
         settings.seed.Set(GenerateRandomSeed()); 
         settings.sheetSeed.Set(GenerateRandomSeed()); 
         Update(); 
-    };
+    };*/
     
     e = settingsContainer.appendChild(document.createElement('button'));
     e.innerHTML = 'Randomize';
@@ -241,6 +242,13 @@ function BuildHTML()
     e.onclick = e => link.click( 
             link.href = canvas.toDataURL('image/png'),
             link.download = 'sprite_sheet');
+    
+    e = settingsContainer.appendChild(document.createElement('button'));
+    e.innerHTML = 'Save Sprite';
+    e.title = 'Save png of sprite.';
+    e.onclick = e => link.click( 
+            link.href = previewCanvas.toDataURL('image/png'),
+            link.download = 'sprite');
 
     e = settingsContainer.appendChild(document.createElement('button'));
     e.innerHTML = 'Copy Sprite';
