@@ -95,8 +95,8 @@ function Animate()
 
     if(animationInitialized)
     {        
-        let x = Math.floor(animationFrames[animationFrame] % columns);// Math.floor(Random(columns));
-        let y = Math.floor(animationFrames[animationFrame] / columns);//Math.floor(Random(rows));
+        let x = Math.floor(animationFrames[animationFrame] % columns);
+        let y = Math.floor(animationFrames[animationFrame] / columns);
 
         // draw preview sprite
         const previewContext = previewCanvas.getContext('2d');
@@ -107,7 +107,6 @@ function Animate()
         previewContext.drawImage(canvas, -x * tileSize, -y * tileSize);   
 
         animationFrame++;
-        //animationFrame %= rows * columns;
         animationFrame %= animationFrames.length;
     }
     else
@@ -152,19 +151,15 @@ function Update()
             if (displayMode == 0)
             {
                 seed = Random(1e9)|0;
-                //seed = x + columns * y;
             }
             else if (displayMode == 1)
             {
                 mutateSeed = Random(1e9)|0;
-                //mutateSeed = x + columns * y;
                 colorSeed = Random(1e9)|0;
-                //colorSeed = x + columns * y;
             }
             else if (displayMode == 2)
             {
                 mutateSeed = Random(1e9)|0;
-                //mutateSeed = x + columns * y;
             }
             sheetSeed = randomSeed;
         }
@@ -227,20 +222,6 @@ function Update()
     previewContext5.drawImage(canvas, 
         -Math.floor(animationFrames[4] % columns) * tileSize, 
         -Math.floor(animationFrames[4] / columns) * tileSize);
-
-    // if(displayMode == 2)
-    // {
-    //     // turn off the ticker
-    //     clearInterval(theInterval);
-
-    //     // turn on the ticker and get a reference to the object
-    //     theInterval=setInterval(Animate, 300);
-    // }
-    // else
-    // {
-    //     // turn off the ticker
-    //     clearInterval(theInterval);
-    // }
 }
 
 class Setting
