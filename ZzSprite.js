@@ -24,7 +24,8 @@ function ZzSprite(context, x=0, y=0, seed=1, size=16, mode=0, mutateSeed=0, colo
     const h = !flipAxis ? size-3 : size/2 - 1 |0;
         
     // apply mutations
-    randomSeed += mutateSeed + 1e8;
+    randomSeed += mutateSeed + 1e8;        
+    
     const spriteSize = size * Random(.9, .6);
     const density = Random(1, .9);
     const doubleCenter = Random() < .5;
@@ -67,6 +68,7 @@ function ZzSprite(context, x=0, y=0, seed=1, size=16, mode=0, mutateSeed=0, colo
             {
                 const o = !!outline;
                 context.fillRect(x+i-o-doubleCenter, y+j-o, 1+2*o, 1+2*o);
+                //context.fillRect(x+i-o, y+j-o, 1+2*o, 1+2*o);
                 context.fillRect(x-i-o, y+j-o, 1+2*o, 1+2*o);
             }
         }
