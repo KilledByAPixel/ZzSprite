@@ -54,7 +54,7 @@ function ZzSprite(context, x=0, y=0, seed=1, size=16, mode=0, mutateSeed=0, colo
             if (outline || mode == 3)
                 newColor = '#000';
             else if (mode == 1)
-                newColor = r%2? '#777' : '#fff';
+                newColor = r%3? r%3==1 ? '#444' : '#999' : '#fff';
             else if (mode == 2)
                 newColor = `#fff`;
             if (!k || Random() < colorRand)
